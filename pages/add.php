@@ -23,7 +23,7 @@
 <body>
     <h1>Add new film</h1>
 
-    <p style="color: red;"><?= $message ?></p>
+    <p style="color: red;"><?= htmlspecialchars($message) ?></p>
 
     <form action="" method="post">
         <li>
@@ -36,7 +36,7 @@
         </li> 
         <li>
             <label for="year">Year</label>
-            <input type="text" name="year" id="year">
+            <input type="number" name="year" id="year">
         </li> 
         <li>
             <label for="genre">Genre</label>

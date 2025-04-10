@@ -18,7 +18,7 @@ if ( deleteFilm($conn, $id) > 0) {
         alert('data gagal dihapus!');
         document.location.href = '../index.php';
     </script>
-";
+    ";
 }
 
 ?>

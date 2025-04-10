@@ -1,4 +1,7 @@
 <?php
+    require __DIR__ . '/check.php';
+    require __DIR__ . '/logger.php';
+
     function getAllFilm ($conn, $query) {
         $result = mysqli_query($conn, $query);
         
@@ -9,21 +12,32 @@
         return $rows;
     }        
     function addFilm($conn, $title, $author, $year, $genre) {
+        // sanitize the input value
+        $title = trim($title);
+        $author = trim($author);
+        $year = trim($year);
+        $genre = trim($genre);
 
-        if (empty($title) || empty($author) || empty($year) || empty($genre)) {
-            $message = "Please input the data first";
-        } else {
-            $sql = "INSERT INTO movies (title, author, year, genre) VALUES (?,?,?,?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssss", $title, $author, $year, $genre);
-            
-            if($stmt->execute()) {
-                $message = "Success to add new film";
-            } else {
-                $message = "Error" . $stmt->error;
-            }
-            $stmt->close();
+        // filtering the input with proper logic
+        $validator = validateInputData($title, $author, $year, $genre);
+        if ($validator !== true) {
+            logMessage("Validation Failed : $validator", "WARNING");
+            return $validator;
         }
+
+        $sql = "INSERT INTO movies (title, author, year, genre) VALUES (?,?,?,?)";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            $message = "Error : " . $conn->error; 
+        }
+        $stmt->bind_param("ssds", $title, $author, $year, $genre);
+        
+        if($stmt->execute()) {
+            $message = "Success to add new film";
+        } else {
+            $message = "Error" . $stmt->error;
+        }
+        $stmt->close();
         return $message;
     }
     function editFilm($conn, $title, $author, $year, $genre, $id) {
