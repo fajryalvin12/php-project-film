@@ -23,6 +23,8 @@
 <body>
     <h1>Add new film</h1>
 
+    <p style="color: red;"><?= $message ?></p>
+
     <form action="" method="post">
         <li>
             <label for="title">Title</label>
@@ -44,5 +46,7 @@
             <button type="submit" name="add">Add!</button>
         </li>
     </form>
+
+    <a href="../index.php">Back to Main Menu</a>
 </body>
 </html>
