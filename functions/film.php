@@ -1,6 +1,7 @@
 <?php
     require __DIR__ . '/check.php';
     require __DIR__ . '/logger.php';
+    require __DIR__ . '/db.php';
 
     function getAllFilm ($conn, $query) {
         $result = mysqli_query($conn, $query);
@@ -41,17 +42,32 @@
         return $message;
     }
     function editFilm($conn, $title, $author, $year, $genre, $id) {
-        $sql = "UPDATE movies SET title=?, author=?, year=?, genre=? WHERE id=?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssd", $title, $author, $year, $genre, $id);
+        // sanitize the input value
+        $title = trim($title);
+        $author = trim($author);
+        $year = trim($year);
+        $genre = trim($genre);
+        $id = intval($id);
 
-        if($stmt->execute()) {
-            $message = "Success to edit the film";
-        } else {
-            $message = "Error" . $stmt->error;
+        // filtering the input with proper logic
+        $validator = validateInputData($title, $author, $year, $genre);
+        if ($validator !== true) {
+            logMessage("Validation Failed : $validator", "WARNING");
+            return $validator;
         }
 
-        $stmt->close();
+        $message = isFilmExist($conn, $id);
+        if ($message !== true) {
+            logMessage("Data not found : $message", "ERROR");
+            return "Data not found : $message";
+        }
+
+        $message = updateFilm($conn, $title, $author, $year, $genre, $id);
+        if ($message !== true) {
+            logMessage("Failed to Update : $message ", "ERROR");
+            return "Failed to Update : $message";
+        }
+
         return $message;
     }
     function deleteFilm($conn, $id) {
@@ -68,4 +84,5 @@
         $stmt->close();
         return $message;
     }
+
 ?>
