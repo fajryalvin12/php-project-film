@@ -1,4 +1,7 @@
 <?php
+
+    // roled as middlewares
+    
     function validateInputData ($title, $author, $year, $genre) {
         if (empty($title) || empty($author) || empty($year) || empty($genre)) {
             return "Please input the data first";

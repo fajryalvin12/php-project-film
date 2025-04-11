@@ -3,6 +3,8 @@
     require __DIR__ . '/logger.php';
     require __DIR__ . '/db.php';
 
+    // roled as controllers
+
     function getAllFilm ($conn, $query) {
         $result = mysqli_query($conn, $query);
         
@@ -19,26 +21,20 @@
         $year = trim($year);
         $genre = trim($genre);
 
-        // filtering the input with proper logic
+        // filtering the input with proper logic or middleware
         $validator = validateInputData($title, $author, $year, $genre);
         if ($validator !== true) {
             logMessage("Validation Failed : $validator", "WARNING");
             return $validator;
         }
 
-        $sql = "INSERT INTO movies (title, author, year, genre) VALUES (?,?,?,?)";
-        $stmt = $conn->prepare($sql);
-        if (!$stmt) {
-            $message = "Error : " . $conn->error; 
+        // add new input value
+        $message = insertFilm($conn, $title, $author, $year, $genre);
+        if ($message !== true) {
+            logMessage("Failed to Insert : $message ", "ERROR");
+            return "Failed to Insert : $message";
         }
-        $stmt->bind_param("ssds", $title, $author, $year, $genre);
-        
-        if($stmt->execute()) {
-            $message = "Success to add new film";
-        } else {
-            $message = "Error" . $stmt->error;
-        }
-        $stmt->close();
+
         return $message;
     }
     function editFilm($conn, $title, $author, $year, $genre, $id) {
@@ -56,12 +52,14 @@
             return $validator;
         }
 
+        // check the choosen film is existed or not
         $message = isFilmExist($conn, $id);
         if ($message !== true) {
             logMessage("Data not found : $message", "ERROR");
             return "Data not found : $message";
         }
 
+        // updated the selected movies or film
         $message = updateFilm($conn, $title, $author, $year, $genre, $id);
         if ($message !== true) {
             logMessage("Failed to Update : $message ", "ERROR");
@@ -70,19 +68,26 @@
 
         return $message;
     }
-    function deleteFilm($conn, $id) {
-        $sql = "DELETE FROM movies WHERE id=?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-
-        if($stmt->execute()) {
-            $message = "Success to delete the film";
-        } else {
-            $message = "Error" . $stmt->error;
+    function removeFilm($conn, $id) {
+        $id = intval(trim($id));
+        if ($id === "") {
+            $message = "Id not found";
+            logMessage("Error : $message", "WARNING");
+            return "Error : $message";
         }
 
-        $stmt->close();
+        $message = isFilmExist($conn, $id);
+        if ($message !== true) {
+            logMessage("Data not found : $message", "ERROR");
+            return "Data not found : $message";
+        }
+
+        $message = deleteFilm($conn, $id);
+        if ($message !== true) {
+            logMessage("Failed to Delete : $message ", "ERROR");
+            return "Failed to Delete : $message";
+        }
+
         return $message;
     }
-
 ?>

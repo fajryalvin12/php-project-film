@@ -9,7 +9,8 @@
     $movies = getAllFilm($conn, "SELECT * FROM movies WHERE id = $id")[0];
 
     if (isset($_POST["edit"])) {
-        $message = editFilm($conn, $_POST["title"], $_POST["author"], $_POST["year"], $_POST["genre"], $id);
+        $result = editFilm($conn, $_POST["title"], $_POST["author"], $_POST["year"], $_POST["genre"], $id);
+        $message = $result === true ? "Success to Edit the Film" : $result;
     }
 
 ?>

@@ -6,10 +6,10 @@
     $message = "";
 
     if (isset($_POST["add"])) {
-        $message = addFilm($conn, $_POST["title"], $_POST["author"], $_POST["year"], $_POST["genre"]);
+        $result = addFilm($conn, $_POST["title"], $_POST["author"], $_POST["year"], $_POST["genre"]);
+        $message = $result === true ? "Success to add new film" : $result;
     }
     
-    mysqli_error($conn)
 ?>
 
 <!DOCTYPE html>
