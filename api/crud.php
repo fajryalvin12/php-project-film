@@ -14,56 +14,93 @@
         while ($row = $result->fetch_assoc()) {
             $movies[] = $row;
         }
-        http_response_code(200);
-        echo json_encode(responseSuccess("List all film", $movies));
+        $response = sendJson(200, responseSuccess("List all film", $movies));
+        echo $response;
 
     } else if ($method === "POST") {
         $data = getData();
-        $title = $conn->real_escape_string($data["title"]);
-        $author = $conn->real_escape_string($data["author"]);
-        $year = $conn->real_escape_string($data["year"]);
-        $genre = $conn->real_escape_string($data["genre"]);
+        $title = trim($data["title"]);
+        $author = trim($data["author"]);
+        $year = trim($data["year"]);
+        $genre = trim($data["genre"]);
 
-        $query = $conn->query("INSERT INTO movies (title, author, year, genre) VALUES ('$title', '$author', '$year', '$genre')");
-        if ($query) {
-            http_response_code(201);
-            echo json_encode(responseSuccess("Success add new movie", 
-            [
+        $sql = "INSERT INTO movies (title, author, year, genre) VALUES (?,?,?,?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssis", $title, $author, $year, $genre);
+
+        if ($stmt->execute()) {
+            $message = "Success add new movie";
+            $response = responseSuccess($message, [
                 "id" => $conn->insert_id, 
                 "title" => $title,
                 "author" => $author,
                 "year" => $year,
                 "genre" => $genre,
-            ]
-        ));
+                ]
+            );
+            echo sendJson(201, $response);
         } else {
-            http_response_code(400);
-            echo json_encode(responseBadRequest("Failed to add new movie"));
+            $message = "Failed to add new movie";
+            $response = responseError($message);
+            echo sendJson(400, $response);
         }
+        $stmt->close();
     } else if ($method === "PUT") {
         $data = getData();
         $id = $data["id"];
-        $title = $conn->real_escape_string($data["title"]);
-        $author = $conn->real_escape_string($data["author"]);
-        $year = $conn->real_escape_string($data["year"]);
-        $genre = $conn->real_escape_string($data["genre"]);
+        $title = trim($data["title"]);
+        $author = trim($data["author"]);
+        $year = trim($data["year"]);
+        $genre = trim($data["genre"]);
 
-        $query = $conn->query("UPDATE movies SET title='$title', author='$author', year='$year', genre='$genre' WHERE id = $id");
+        $sql = "UPDATE movies SET title=?, author=?, year=?, genre=? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssisi", $title, $author, $year, $genre, $id);
 
-        if ($query) {
-            echo json_encode(["message" => "The movies with id : $id was updated"]);
+        if ($stmt->execute()){
+            $message = "Success edit the movie with id = $id";
+            $response = responseSuccess($message, [
+                "id" => $id, 
+                "title" => $title,
+                "author" => $author,
+                "year" => $year,
+                "genre" => $genre,
+                ]
+            );
+            echo sendJson(202, $response);
         } else {
-            echo json_encode(["message" => "Failed to updated the movies"]);
+            $message = "Failed to update the movie";
+            $response = responseError($message);
+            echo sendJson(400, $response);
         }
+
+        $stmt->close();
+
     } else if ($method === "DELETE") {
         $data = getData();
+        
+        if (!isset($data["id"])) {
+            echo sendJson(400, responseError("Input ID required!"));
+            exit;
+        };
+        
         $id = $data["id"];
-        $query = $conn->query("DELETE FROM movies WHERE id = $id");
-        if ($query) {
-            echo json_encode(["message" => "The movies with id : $id was deleted"]);
+
+        $sql = "DELETE FROM movies WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+
+        if ($stmt->execute()) {
+            $message = "Success delete the movie with id = $id";
+            $response = responseSuccess($message, ["id" => $id]);
+            echo sendJson(202, $response);
         } else {
-            echo json_encode(["message" => "Failed to deleted the movies"]);
+            $message = "Failed to delete the movie";
+            $response = responseError($message);
+            echo sendJson(400, $response); 
         }
+
+        $stmt->close();
     } else {
         http_response_code(405);
         echo json_encode("Message: Tidak diizinkan");
