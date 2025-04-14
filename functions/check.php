@@ -3,6 +3,8 @@
     // roled as middlewares
     
     function validateInputData ($title, $author, $year, $genre) {
+        $currentDate = date("Y");
+
         if (empty($title) || empty($author) || empty($year) || empty($genre)) {
             return "Please input the data first";
         } 
@@ -15,7 +17,7 @@
         if (!filter_var($year, FILTER_VALIDATE_INT)) {
             return "Please input the proper numbers in year column";
         } 
-        if ( $year < 1800 || $year > 2025) {
+        if ( $year < 1800 || $year > $currentDate) {
             return "Please input the proper year's range";
         }
 
